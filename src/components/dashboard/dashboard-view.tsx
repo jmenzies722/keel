@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { Activity, ArrowRight, Building2, Flame, Target } from "lucide-react";
 import { INCIDENTS } from "@content/incidents";
 import { AUTHORED_PATH } from "@content/path";
 import { SKILLS } from "@content/skills/catalog";
 import { DimensionStack } from "@/components/skills/meters";
-import { brand } from "@/lib/brand";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { useDerivedProgress, useProgress } from "@/lib/progress/store";
 import { SKILL_LEVEL_LABELS } from "@/lib/skills/types";
 import { cn } from "@/lib/utils";
@@ -23,132 +26,175 @@ export function DashboardView() {
   const featured = progress[FEATURED.find((id) => (progress[id]?.overall ?? 0) < 0.6) ?? "linux.processes"];
   const recent = [...evidence].slice(-6).reverse();
   const spineDone = AUTHORED_PATH.filter((n) => completedLessons.includes(n.lesson)).length;
+  const spinePercent = Math.round((spineDone / AUTHORED_PATH.length) * 100);
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {brand.productName} · {brand.descriptor}
-          </p>
-          <h1 className="mt-1 text-3xl font-medium tracking-tight">Engineering desk</h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">{brand.tagline}</p>
-        </div>
-        <div className="text-right text-sm">
-          <p className="text-muted-foreground">Competency band</p>
-          <p className="font-medium">{band.title}</p>
-          <p className="text-xs text-muted-foreground">{band.blurb}</p>
-        </div>
-      </header>
-
+    <div className="space-y-6">
       {!onboarded ? (
-        <section className="rounded-lg p-5 ring-1 ring-primary/30">
-          <h2 className="text-lg font-medium">Two ways through Keel</h2>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Learn is the curriculum. Company is Northstar Systems. They share one skill graph. Start with representation, or walk into the first incident if you already know processes.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+        <Card className="border border-primary/20 bg-primary/[0.04] ring-primary/20">
+          <CardHeader>
+            <CardTitle>Choose your operating mode</CardTitle>
+            <CardDescription className="max-w-2xl">
+              Learn builds the model. Company tests it under pressure. Both modes write to the same evidence graph.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
             <Link href="/learn" className={cn(buttonVariants())} onClick={() => markOnboarded()}>
-              Start learning
+              Start with Learn
             </Link>
-            <Link href="/company" className={cn(buttonVariants({ variant: "outline" }))} onClick={() => markOnboarded()}>
-              Enter Northstar
+            <Link
+              href="/company"
+              className={cn(buttonVariants({ variant: "outline" }))}
+              onClick={() => markOnboarded()}
+            >
+              Start on-call
             </Link>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Stat label="Target role" value="AI Platform Engineer" hint="A competency band, not an offer letter." />
-        <Stat label="Days active" value={streak ? `${streak}` : "—"} hint="This device only." />
-        <Stat
-          label="Spine"
-          value={`${spineDone}/${AUTHORED_PATH.length}`}
-          hint={`${evidence.length} evidence records · ${resolvedIncidents.length} missions`}
-        />
+        <Stat icon={Target} label="Competency band" value={band.title} hint={band.blurb} />
+        <Stat icon={Flame} label="Current streak" value={streak ? `${streak} days` : "Start today"} hint="Activity is stored on this device." />
+        <Stat icon={Activity} label="Evidence" value={`${evidence.length} records`} hint={`${resolvedIncidents.length} missions resolved`} />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg p-5 ring-1 ring-foreground/10">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Continue learning</p>
-          <h2 className="mt-1 text-lg font-medium">{recommendation.title}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">{recommendation.reason}</p>
-          <Link href={recommendation.href} className={cn(buttonVariants(), "mt-4")}>
-            Continue
-          </Link>
-        </div>
-        <div className="rounded-lg p-5 ring-1 ring-foreground/10">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Continue working</p>
-          <h2 className="mt-1 text-lg font-medium">Northstar Systems</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Four production missions on the spine: Linux, DNS, CrashLoopBackOff, inference.
-          </p>
-          <Link href="/company" className={cn(buttonVariants({ variant: "outline" }), "mt-4")}>
-            Enter company
-          </Link>
-        </div>
+      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <Card className="relative min-h-52 border border-primary/20 bg-card ring-primary/20">
+          <CardHeader>
+            <Badge variant="outline" className="mb-2 border-primary/30 text-primary">Recommended next</Badge>
+            <CardTitle className="text-xl">{recommendation.title}</CardTitle>
+            <CardDescription className="max-w-lg">{recommendation.reason}</CardDescription>
+            <CardAction>
+              <span className="font-mono text-xs text-muted-foreground">{spinePercent}% spine</span>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="mt-auto">
+            <Progress value={spinePercent} aria-label="Authored spine progress" className="mb-5" />
+            <Link href={recommendation.href} className={cn(buttonVariants(), "gap-2 rounded-full px-4")}>
+              Continue path <ArrowRight className="size-3.5" />
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="min-h-52 border border-border/70">
+          <CardHeader>
+            <Badge variant="secondary" className="mb-2">Company simulator</Badge>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Building2 className="size-5 text-primary" />
+              Northstar Systems
+            </CardTitle>
+            <CardDescription>
+              Four production missions turn lesson knowledge into incident evidence.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-auto">
+            <Link href="/company" className={cn(buttonVariants({ variant: "outline" }), "rounded-full px-4")}>
+              Open staff desk
+            </Link>
+          </CardContent>
+        </Card>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-lg p-5 ring-1 ring-foreground/10">
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="font-medium">
+        <Card>
+          <CardHeader>
+            <CardTitle>
               {SKILLS.find((s) => s.id === featured?.skillId)?.title ?? "Skill"}
-            </h2>
-            <span className="text-xs text-muted-foreground">
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
               {SKILL_LEVEL_LABELS[featured?.level ?? 0]}
-            </span>
-          </div>
-          <DimensionStack dimensions={featured?.dimensions ?? []} />
-        </div>
-        <div className="rounded-lg p-5 ring-1 ring-foreground/10">
-          <h2 className="font-medium">Missions</h2>
-          <ul className="mt-3 space-y-2 text-sm">
+              </Badge>
+            </CardAction>
+            <CardDescription>Your next skill edge, broken down by evidence type.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DimensionStack dimensions={featured?.dimensions ?? []} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Mission queue</CardTitle>
+            <CardDescription>Open incidents remain available in any order.</CardDescription>
+          </CardHeader>
+          <CardContent>
+          <ul className="divide-y divide-border/70 text-sm">
             {INCIDENTS.map((inc) => (
-              <li key={inc.id} className="flex items-center justify-between gap-3">
-                <Link href={`/company/incidents/${inc.id}`} className="hover:underline">
-                  {inc.preview ? "Preview · " : ""}
-                  {inc.title}
+              <li key={inc.id}>
+                <Link
+                  href={`/company/incidents/${inc.id}`}
+                  className="group flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <span>
+                    <span className="block text-foreground transition-colors group-hover:text-primary">{inc.title}</span>
+                    <span className="text-xs text-muted-foreground">{inc.severity}{inc.preview ? " · advanced" : ""}</span>
+                  </span>
+                  <Badge variant={resolvedIncidents.includes(inc.id) ? "secondary" : "outline"}>
+                    {resolvedIncidents.includes(inc.id) ? "Resolved" : "Open"}
+                  </Badge>
                 </Link>
-                <span className="text-xs text-muted-foreground">
-                  {resolvedIncidents.includes(inc.id) ? "Resolved" : "Open"}
-                </span>
               </li>
             ))}
           </ul>
-        </div>
+          </CardContent>
+        </Card>
       </section>
 
-      <section className="rounded-lg p-5 ring-1 ring-foreground/10">
-        <h2 className="font-medium">Recent evidence</h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent evidence</CardTitle>
+          <CardDescription>Competence changes when you produce an artifact—not when you open a page.</CardDescription>
+        </CardHeader>
+        <CardContent>
         {recent.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">None yet. Quizzes, labs, incidents, and interviews write here.</p>
+          <div className="rounded-lg border border-dashed border-border px-4 py-6 text-center">
+            <p className="text-sm font-medium">No evidence yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">Complete a quiz, lab, incident, or interview to start the graph.</p>
+          </div>
         ) : (
-          <ul className="mt-3 space-y-2 text-sm">
+          <ul className="divide-y divide-border/70 text-sm">
             {recent.map((e) => (
-              <li key={e.id} className="flex justify-between gap-3">
+              <li key={e.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <span>
                   {SKILLS.find((s) => s.id === e.skillId)?.title ?? e.skillId}
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {e.source} · {e.dimension}
-                  </span>
+                  <span className="ml-2 text-xs text-muted-foreground">{e.source} · {e.dimension}</span>
                 </span>
-                <span className="tabular-nums text-muted-foreground">{Math.round(e.score * 100)}%</span>
+                <Badge variant="secondary" className="font-mono">{Math.round(e.score * 100)}%</Badge>
               </li>
             ))}
           </ul>
         )}
-      </section>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+function Stat({
+  icon: Icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: typeof Activity;
+  label: string;
+  value: string;
+  hint: string;
+}) {
   return (
-    <div className="rounded-lg p-4 ring-1 ring-foreground/10">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-medium tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-    </div>
+    <Card size="sm">
+      <CardContent className="flex items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="mt-1 truncate text-lg font-medium">{value}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
