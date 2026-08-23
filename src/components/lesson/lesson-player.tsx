@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { getRuntime } from "@content/runtimes";
 import { BinaryExplorer } from "@/components/visualizations/binary-explorer";
 import { DnsResolution } from "@/components/visualizations/dns-resolution";
@@ -12,7 +13,9 @@ import { CodeExercise } from "@/components/lesson/code-exercise";
 import { MentorPanel } from "@/components/mentor/mentor-panel";
 import { Quiz } from "@/components/lesson/quiz-block";
 import { SimTerminal } from "@/components/terminal/sim-terminal";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Markdown } from "@/lib/md";
 import { useProgress } from "@/lib/progress/store";
 import type { Lesson, LessonBlock, LessonSection } from "@/lib/curriculum/types";
@@ -26,50 +29,82 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   const completeLesson = useProgress((s) => s.completeLesson);
   const recordEvidence = useProgress((s) => s.recordEvidence);
   const completedSections = useProgress((s) => s.completedSections);
+  const completedLessons = useProgress((s) => s.completedLessons);
   const key = `${lesson.phaseSlug}/${lesson.slug}`;
   const section = lesson.sections.find((s) => s.id === active) ?? lesson.sections[0];
 
   const doneCount = lesson.sections.filter((s) => completedSections.includes(`${key}:${s.id}`)).length;
+  const lessonComplete = completedLessons.includes(key);
+  const progress = Math.round((doneCount / lesson.sections.length) * 100);
+
+  function goToSection(id: string) {
+    setActive(id);
+    recordSection(key, id);
+    window.requestAnimationFrame(() => {
+      document.getElementById("lesson-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)_300px]">
-      <nav aria-label="Lesson sections" className="xl:sticky xl:top-20 xl:self-start">
-        <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Lesson</p>
-        <ol className="space-y-1">
+    <div className="grid min-w-0 max-w-full gap-6 xl:grid-cols-[230px_minmax(0,1fr)_310px]">
+      <nav
+        aria-label="Lesson sections"
+        className="sticky top-16 z-30 -mx-4 min-w-0 max-w-[calc(100%+2rem)] border-y border-border/70 bg-background/95 px-4 py-3 backdrop-blur-xl md:-mx-6 md:max-w-[calc(100%+3rem)] md:px-6 xl:top-20 xl:mx-0 xl:max-w-full xl:self-start xl:rounded-xl xl:border xl:bg-card/80 xl:p-3"
+      >
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Lesson map</p>
+          <span className="font-mono text-[11px] text-muted-foreground">{doneCount}/{lesson.sections.length}</span>
+        </div>
+        <Progress value={progress} aria-label="Sections opened" className="mb-3" />
+        <ol className="flex gap-1.5 overflow-x-auto pb-1 xl:block xl:space-y-1 xl:overflow-visible xl:pb-0">
           {lesson.sections.map((s, i) => {
             const done = completedSections.includes(`${key}:${s.id}`);
             return (
-              <li key={s.id}>
+              <li key={s.id} className="shrink-0 xl:shrink">
                 <button
                   type="button"
-                  onClick={() => {
-                    setActive(s.id);
-                    recordSection(key, s.id);
-                  }}
+                  onClick={() => goToSection(s.id)}
+                  aria-current={active === s.id ? "step" : undefined}
                   className={cn(
-                    "w-full rounded-md px-2 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted hover:text-foreground",
-                    active === s.id && "bg-muted text-foreground",
+                    "flex h-9 items-center rounded-lg border border-transparent px-2.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xl:h-auto xl:w-full xl:py-2 xl:text-sm",
+                    active === s.id && "border-primary/20 bg-primary/10 text-foreground",
                   )}
                 >
-                  <span className="mr-2 font-mono text-[10px] text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
-                  {s.title}
-                  {done ? <span className="sr-only"> (visited)</span> : null}
+                  <span className="mr-2 grid size-5 shrink-0 place-items-center rounded-full bg-muted font-mono text-[9px]">
+                    {done ? <Check className="size-3 text-ok" /> : String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="max-w-36 truncate xl:max-w-none">{s.title}</span>
                 </button>
               </li>
             );
           })}
         </ol>
-        <p className="mt-4 text-xs text-muted-foreground">
+        <p className="mt-3 hidden text-xs text-muted-foreground xl:block">
           {doneCount}/{lesson.sections.length} sections opened. Opening is not evidence.
         </p>
       </nav>
 
-      <article>
+      <article id="lesson-content" className="min-w-0 scroll-mt-36 xl:scroll-mt-24">
         <header className="mb-6 border-b pb-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">{lesson.phaseSlug}</Badge>
+            <Badge variant="secondary">{lesson.durationMin} min</Badge>
+            {lessonComplete ? <Badge><Check className="size-3" /> Studied</Badge> : null}
+            <Button
+              size="sm"
+              variant={lessonComplete ? "secondary" : "outline"}
+              className="ml-auto"
+              onClick={() => completeLesson(key)}
+              disabled={lessonComplete}
+            >
+              {lessonComplete ? <Check data-icon="inline-start" /> : null}
+              {lessonComplete ? "Studied" : "Mark studied"}
+            </Button>
+          </div>
+          <p className="mt-3 text-xs uppercase tracking-wide text-muted-foreground">
             {lesson.phaseSlug} · {lesson.moduleSlug}
           </p>
-          <h1 className="mt-1 text-2xl font-medium tracking-tight">{lesson.title}</h1>
+          <h1 className="mt-1 text-3xl font-medium tracking-[-0.025em]">{lesson.title}</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">{lesson.description}</p>
           <ul className="mt-3 list-disc pl-5 text-sm text-muted-foreground">
             {lesson.objectives.map((o) => (
@@ -77,7 +112,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
             ))}
           </ul>
         </header>
-        <h2 className="mb-4 text-lg font-medium">{section.title}</h2>
+        <h2 className="mb-4 text-xl font-medium" aria-live="polite">{section.title}</h2>
         <div className="space-y-6">
           {section.blocks.map((block, i) => (
             <BlockView
@@ -110,20 +145,19 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
             />
           ))}
         </div>
-        <footer className="mt-8 flex items-center justify-between border-t pt-4">
+        <footer className="sticky bottom-3 z-20 mt-8 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-background/90 p-2 shadow-lg backdrop-blur-xl">
           <SectionNav
             sections={lesson.sections}
             active={active}
-            onChange={(id) => {
-              setActive(id);
-              recordSection(key, id);
-            }}
+            onChange={goToSection}
           />
           <Button
-            variant="outline"
+            variant={lessonComplete ? "secondary" : "outline"}
             onClick={() => completeLesson(key)}
+            disabled={lessonComplete}
           >
-            Mark lesson studied
+            {lessonComplete ? <Check data-icon="inline-start" /> : null}
+            {lessonComplete ? "Lesson studied" : "Mark studied"}
           </Button>
         </footer>
       </article>
@@ -146,7 +180,8 @@ function SectionNav({
   return (
     <div className="flex gap-2">
       <Button size="sm" variant="ghost" disabled={idx <= 0} onClick={() => onChange(sections[idx - 1].id)}>
-        Previous
+        <ChevronLeft data-icon="inline-start" />
+        <span className="hidden sm:inline">Previous</span>
       </Button>
       <Button
         size="sm"
@@ -154,7 +189,9 @@ function SectionNav({
         disabled={idx >= sections.length - 1}
         onClick={() => onChange(sections[idx + 1].id)}
       >
-        Next section
+        <span className="hidden sm:inline">Next section</span>
+        <span className="sm:hidden">Next</span>
+        <ChevronRight data-icon="inline-end" />
       </Button>
     </div>
   );

@@ -1,4 +1,5 @@
 import { DIMENSION_LABELS, type DimensionScore, type SkillDimension } from "@/lib/skills/types";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 export function Bar({
@@ -19,16 +20,7 @@ export function Bar({
           <span className="tabular-nums">{pct}%</span>
         </div>
       ) : null}
-      <div
-        className="h-1.5 overflow-hidden rounded-full bg-muted"
-        role="progressbar"
-        aria-valuenow={pct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={label}
-      >
-        <div className="h-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
-      </div>
+      <Progress value={pct} aria-label={label ?? "Skill progress"} className="[&_[data-slot=progress-track]]:h-1.5" />
     </div>
   );
 }

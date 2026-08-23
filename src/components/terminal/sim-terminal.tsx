@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CornerDownLeft, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { executeCommand } from "@/lib/simulator/terminal";
 import type { TerminalRuntimeSpec } from "@/lib/simulator/types";
 import { cn } from "@/lib/utils";
@@ -61,14 +63,30 @@ export function SimTerminal({
 
   return (
     <div
-      className={cn("terminal-screen flex h-[420px] flex-col overflow-hidden rounded-md ring-1 ring-white/10", className)}
+      className={cn("terminal-screen flex h-[min(420px,62vh)] min-h-[300px] flex-col overflow-hidden rounded-xl ring-1 ring-white/10", className)}
       onClick={() => field.current?.focus()}
     >
-      <div className="flex items-center gap-2 border-b border-white/10 px-3 py-1.5 text-[11px] text-white/50">
-        <span className="inline-block size-2 rounded-full bg-white/25" aria-hidden />
-        <span>
+      <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2 text-[11px] text-white/50">
+        <div className="flex gap-1.5" aria-hidden>
+          <span className="size-2 rounded-full bg-red-300/50" />
+          <span className="size-2 rounded-full bg-amber-200/50" />
+          <span className="size-2 rounded-full bg-emerald-300/50" />
+        </div>
+        <span className="truncate">
           {spec.promptUser}@{spec.hostname} — simulated session
         </span>
+        <button
+          type="button"
+          className="ml-auto rounded p-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80"
+          aria-label="Clear terminal"
+          onClick={(event) => {
+            event.stopPropagation();
+            setLines(spec.motd ? [{ kind: "sys", text: spec.motd }] : []);
+            field.current?.focus();
+          }}
+        >
+          <RotateCcw className="size-3" />
+        </button>
       </div>
       <div className="flex-1 overflow-auto px-3 py-2 text-[12.5px] leading-5" role="log" aria-live="polite">
         {lines.map((line, i) => (
@@ -119,6 +137,20 @@ export function SimTerminal({
             }
           }}
         />
+        <Button
+          type="button"
+          size="xs"
+          variant="ghost"
+          className="text-white/55 hover:bg-white/10 hover:text-white"
+          disabled={!input.trim()}
+          onClick={(event) => {
+            event.stopPropagation();
+            run(input);
+          }}
+        >
+          Run
+          <CornerDownLeft data-icon="inline-end" />
+        </Button>
       </div>
     </div>
   );

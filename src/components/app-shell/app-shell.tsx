@@ -4,7 +4,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-full flex-col">
       <TopNav />
-      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6">{children}</main>
+      <main id="main-content" className="mx-auto min-w-0 w-full max-w-[1400px] flex-1 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+        {children}
+      </main>
     </div>
   );
 }
