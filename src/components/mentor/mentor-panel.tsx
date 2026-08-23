@@ -55,7 +55,7 @@ export function MentorPanel({
   }
 
   return (
-    <aside className="flex min-h-[360px] flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)]">
+    <aside className="flex min-w-0 max-w-full min-h-[360px] flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)]">
       <div className="flex items-start gap-3 border-b px-3 py-3">
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
           <Sparkles className="size-4" />

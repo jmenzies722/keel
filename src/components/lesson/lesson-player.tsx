@@ -46,10 +46,10 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[230px_minmax(0,1fr)_310px]">
+    <div className="grid min-w-0 max-w-full gap-6 xl:grid-cols-[230px_minmax(0,1fr)_310px]">
       <nav
         aria-label="Lesson sections"
-        className="sticky top-16 z-30 -mx-4 border-y border-border/70 bg-background/95 px-4 py-3 backdrop-blur-xl md:-mx-6 md:px-6 xl:top-20 xl:mx-0 xl:self-start xl:rounded-xl xl:border xl:bg-card/80 xl:p-3"
+        className="sticky top-16 z-30 -mx-4 min-w-0 max-w-[calc(100%+2rem)] border-y border-border/70 bg-background/95 px-4 py-3 backdrop-blur-xl md:-mx-6 md:max-w-[calc(100%+3rem)] md:px-6 xl:top-20 xl:mx-0 xl:max-w-full xl:self-start xl:rounded-xl xl:border xl:bg-card/80 xl:p-3"
       >
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Lesson map</p>
