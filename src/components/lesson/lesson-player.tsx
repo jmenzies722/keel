@@ -90,6 +90,16 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
             <Badge variant="outline">{lesson.phaseSlug}</Badge>
             <Badge variant="secondary">{lesson.durationMin} min</Badge>
             {lessonComplete ? <Badge><Check className="size-3" /> Studied</Badge> : null}
+            <Button
+              size="sm"
+              variant={lessonComplete ? "secondary" : "outline"}
+              className="ml-auto"
+              onClick={() => completeLesson(key)}
+              disabled={lessonComplete}
+            >
+              {lessonComplete ? <Check data-icon="inline-start" /> : null}
+              {lessonComplete ? "Studied" : "Mark studied"}
+            </Button>
           </div>
           <p className="mt-3 text-xs uppercase tracking-wide text-muted-foreground">
             {lesson.phaseSlug} · {lesson.moduleSlug}
