@@ -34,6 +34,12 @@ export default function RootLayout({
       className={`${sans.variable} ${mono.variable} dark h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <a
+          href="#main-content"
+          className="sr-only z-[100] rounded-md bg-background px-3 py-2 text-sm focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+        >
+          Skip to content
+        </a>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
