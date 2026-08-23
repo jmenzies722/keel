@@ -6,7 +6,7 @@ import { SKILLS } from "@content/skills/catalog";
 import { DimensionStack } from "@/components/skills/meters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDerivedProgress } from "@/lib/progress/store";
 import { SKILL_LEVEL_LABELS } from "@/lib/skills/types";
 
